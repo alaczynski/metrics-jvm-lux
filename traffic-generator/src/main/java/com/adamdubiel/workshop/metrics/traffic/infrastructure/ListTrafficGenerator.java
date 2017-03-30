@@ -20,9 +20,9 @@ public class ListTrafficGenerator implements Callable<Void> {
 
     private final AsyncRestTemplate restTemplate;
 
-    public ListTrafficGenerator(URI baseuri, int rps, int maxConns) {
+    public ListTrafficGenerator(URI baseuri, int rps, int maxConns, HttpClientFactory factory) {
         this.baseuri = baseuri;
-        this.restTemplate = new AsyncRestTemplate();
+        this.restTemplate = factory.create(maxConns);
         this.rateLimiter = RateLimiter.create(rps);
     }
 

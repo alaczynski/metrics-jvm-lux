@@ -52,4 +52,28 @@ public class TrafficGeneratorEndpoint {
     public void ex7() {
         trafficGenerator.generateLotOfVotes();
     }
+
+    @RequestMapping(value = "/ex8", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void ex8() {
+        trafficGenerator.generateLotOfVotesAndConns();
+    }
+
+    @RequestMapping(value = "/ex12", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void ex12() {
+        trafficGenerator.generateLotOfVotes();
+    }
+
+    @RequestMapping(value = "/ex14", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void ex14() {
+        trafficGenerator.generateLotOfVotes();
+    }
+
+    @RequestMapping(value = "/ex17", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void ex16() {
+        trafficGenerator.generateLotOfAddsAndVotes();
+    }
 }

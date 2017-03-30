@@ -18,14 +18,17 @@ public class TrafficGenerator implements AutoCloseable {
 
     private final VoteFactory voteFactory;
 
-    public TrafficGenerator(@Value("${baseuri}") URI baseuri, VoteFactory voteFactory) {
+    private final HttpClientFactory factory;
+
+    public TrafficGenerator(@Value("${baseuri}") URI baseuri, VoteFactory voteFactory, HttpClientFactory factory) {
         this.baseuri = baseuri;
         this.voteFactory = voteFactory;
+        this.factory = factory;
     }
 
     public void generateNormalTrafficAllEndpoints() {
-        executor.submit(new ListTrafficGenerator(baseuri, 5, 10));
-        executor.submit(new VoteTrafficGenerator(baseuri, 10, 0, 10, voteFactory));
+        executor.submit(new ListTrafficGenerator(baseuri, 5, 10, factory));
+        executor.submit(new VoteTrafficGenerator(baseuri, 10, 0, 10, voteFactory, factory));
         executor.submit(new AddRestaurantTrafficGenerator(baseuri, 0.1, 10));
     }
 
@@ -38,7 +41,16 @@ public class TrafficGenerator implements AutoCloseable {
     }
 
     public void generateLotOfVotes() {
-        executor.submit(new VoteTrafficGenerator(baseuri, 100, 0, 100, voteFactory));
+        executor.submit(new VoteTrafficGenerator(baseuri, 150, 0, 50, voteFactory, factory));
+    }
+
+    public void generateLotOfVotesAndConns() {
+        executor.submit(new VoteTrafficGenerator(baseuri, 100, 0, 100, voteFactory, factory));
+    }
+
+    public void generateLotOfAddsAndVotes() {
+        executor.submit(new VoteTrafficGenerator(baseuri, 100, 0, 50, voteFactory, factory));
+        executor.submit(new AddRestaurantTrafficGenerator(baseuri, 100, 10));
     }
 
     @Override

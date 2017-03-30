@@ -27,11 +27,11 @@ public class VoteTrafficGenerator implements Callable<Void> {
 
     private final int failingPercent;
 
-    public VoteTrafficGenerator(URI baseuri, int rps, int failingPercent, int maxConns, VoteFactory voteFactory) {
+    public VoteTrafficGenerator(URI baseuri, int rps, int failingPercent, int maxConns, VoteFactory voteFactory, HttpClientFactory clientFactory) {
         this.baseuri = baseuri;
         this.voteFactory = voteFactory;
         this.failingPercent = failingPercent;
-        this.restTemplate = new AsyncRestTemplate();
+        this.restTemplate = clientFactory.create(maxConns);
         this.rateLimiter = RateLimiter.create(rps);
     }
 

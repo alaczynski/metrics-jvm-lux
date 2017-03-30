@@ -1,43 +1,67 @@
 package com.adamdubiel.workshop.metrics.traffic.infrastructure;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.nio.reactor.ConnectingIOReactor;
+import org.apache.http.nio.reactor.IOReactorException;
+import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.AsyncRestTemplate;
 
 @Component
 public class HttpClientFactory {
 
-    public HttpClient client(int maxConns) {
-        return httpClient(connectionManager(maxConns));
+    public AsyncRestTemplate create(int maxConns) {
+        DefaultAsyncClientHttpRequestFactory requestFactory = asyncRequestFactory(maxConns);
+        AsyncRestTemplate template = new AsyncRestTemplate(requestFactory, requestFactory);
+        return template;
     }
 
-//    public AsyncRestTemplate create() {
-//        DefaultAsyncClientHttpRequestFactory requestFactory = asyncRequestFactory();
-//        AsyncRestTemplate template = new AsyncRestTemplate(requestFactory, requestFactory);
-//        return template;
-//    }
-
-    private HttpClient httpClient(PoolingHttpClientConnectionManager connectionManager) {
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(1000)
-                .setSocketTimeout(1500)
-                .build();
-
-        HttpClientBuilder clientBuilder = HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .setDefaultRequestConfig(requestConfig);
-
-        return clientBuilder.build();
+    private DefaultAsyncClientHttpRequestFactory asyncRequestFactory(int maxConns) {
+        HttpComponentsAsyncClientHttpRequestFactory clientFactory = asyncHttpRequestFactory(maxConns);
+        return new DefaultAsyncClientHttpRequestFactory(
+                clientFactory,
+                clientFactory);
     }
 
-    PoolingHttpClientConnectionManager connectionManager(int maxConns) {
-        PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
-        manager.setMaxTotal(maxConns);
-        manager.setDefaultMaxPerRoute(maxConns);
+    private HttpComponentsAsyncClientHttpRequestFactory asyncHttpRequestFactory(int maxConns) {
+        return new HttpComponentsAsyncClientHttpRequestFactory(createAsyncClient(maxConns));
+    }
 
-        return manager;
+    private CloseableHttpAsyncClient createAsyncClient(int maxConns) {
+        HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClientBuilder.create()
+                .setConnectionManager(connectionManager(maxConns));
+
+        return asyncClientBuilder.build();
+    }
+
+    private PoolingNHttpClientConnectionManager connectionManager(int maxConns) {
+        try {
+            IOReactorConfig reactorConfig = IOReactorConfig.custom()
+                    .setConnectTimeout(1000)
+                    .setSoTimeout(1500)
+                    .setSelectInterval(100)
+                    .setTcpNoDelay(true)
+                    .build();
+            ConnectingIOReactor reactor = new DefaultConnectingIOReactor(
+                    reactorConfig,
+                    new ThreadFactoryBuilder().setNameFormat("http-client-%d").build()
+            );
+
+            PoolingNHttpClientConnectionManager manager;
+            manager = new PoolingNHttpClientConnectionManager(reactor);
+
+            manager.setMaxTotal(maxConns);
+            manager.setDefaultMaxPerRoute(maxConns);
+
+            return manager;
+        } catch (IOReactorException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }
