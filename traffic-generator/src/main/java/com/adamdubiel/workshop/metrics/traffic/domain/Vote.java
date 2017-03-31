@@ -33,6 +33,10 @@ public class Vote implements Iterable<String> {
         return votes.keySet().iterator();
     }
 
+    public Map<String, Integer> getVotes() {
+        return votes;
+    }
+
     public long getTimestamp() {
         return timestamp;
     }

@@ -27,12 +27,11 @@ public class VoteFactory {
         Map<String, Integer> votes = new HashMap<>();
 
         for (int i = 0; i < random(MIN_VOTES, MAX_VOTES); ++i) {
-            String restaurantName = shouldBeFailing(failingPercent) ?
-                    restaurantName("restaurant-", MAX_ID) :
-                    restaurantName(FAILING_PREFIX, MAX_FAILING_ID);
+//            String restaurantName = shouldBeFailing(failingPercent) ?
+//                    restaurantName(FAILING_PREFIX, MAX_FAILING_ID);
 
             votes.put(
-                    restaurantName, random(0, 5)
+                    restaurantName("restaurant", MAX_ID), random(0, 5)
             );
         }
 
