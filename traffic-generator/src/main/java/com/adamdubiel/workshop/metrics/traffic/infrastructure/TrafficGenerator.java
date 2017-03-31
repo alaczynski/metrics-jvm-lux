@@ -45,7 +45,8 @@ public class TrafficGenerator implements AutoCloseable {
     }
 
     public void generateLotOfVotesAndConns() {
-        executor.submit(new VoteTrafficGenerator(baseuri, 100, 0, 100, voteFactory, factory));
+        executor.submit(new ListTrafficGenerator(baseuri, 5, 100, factory));
+//        executor.submit(new VoteTrafficGenerator(baseuri, 100, 0, 100, voteFactory, factory));
     }
 
     public void generateLotOfAddsAndVotes() {
